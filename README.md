@@ -1,3 +1,11 @@
+<div align="center">
+  <img src="assets/flint_logo.png" alt="Flint" width="320" />
+  <h1>Flint | Offensive Security Firmware</h1>
+</div>
+
+Offensive security firmware for the M5Stack CardputerZero, written in Python.
+Pure Python stack with a pygame emulator for development and a framebuffer/evdev runtime for hardware targets.
+
 # flint-community
 
 This is the public issue tracker and feedback hub for **Flint** — offensive security firmware for Linux hardware.
