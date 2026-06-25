@@ -72,9 +72,11 @@ If your firmware version has no matching directory, nexmon cannot be used safely
 
 > **Risk warning — read before proceeding.** nexmon replaces the kernel driver and the firmware binary for your onboard WiFi chip. If the install fails, or if you're on an unsupported firmware version, **`wlan0` will stop working** and you may need physical access to the device (keyboard/monitor or serial console) to restore it. Always make sure you can reach the Pi without WiFi before running any of the steps below.
 
-nexmon officially supports kernels up to **6.6**. Kernel 6.18 is supported via the [flintdevices fork](#rpi-3b-kernel-618-path) below. Other kernel versions are unsupported.
+nexmon officially supports kernels up to **6.6**. Kernel 6.18 is supported for RPi 3B+ via the [flintdevices fork](#rpi-3b-kernel-618-path) below. Other kernel versions are unsupported.
 
-**Step 3 — Install (CardputerZero and kernel ≤ 6.6)**
+> **CardputerZero on kernel 6.18 — coming soon.** The same kernel API changes that affected RPi 3B+ (timer, cfg80211, SDIO) will almost certainly affect the BCM43430A1 driver as well. We haven't validated this yet because we don't have hardware running kernel 6.18 to test against. Until then, CardputerZero requires kernel ≤ 6.6 for nexmon to work. Use Option B (USB dongle) if your kernel is newer.
+
+**Step 3 — Install (kernel ≤ 6.6 only)**
 
 Replace `<chip>` and `<firmware>` with the values you found:
 
