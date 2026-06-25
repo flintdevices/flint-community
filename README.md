@@ -52,62 +52,14 @@ brcmfmac: brcmf_c_preinit_dcmds: Firmware: BCM4345/6 wl0: ... version 7.45.265 .
 6.18.33+rpt-rpi-v8
 ```
 
-**Step 2 — Find the matching nexmon patch**
+> **Risk warning — read before proceeding.** nexmon replaces the kernel driver and the firmware binary for your onboard WiFi chip. If the install fails, **`wlan0` will stop working** and you may need physical access (keyboard/monitor or serial console) to restore it. Always make sure you can reach the Pi without WiFi before running any of the steps below.
 
-Browse `patches/` in the [nexmon repo](https://github.com/seemoo-lab/nexmon/tree/master/patches) and look for a directory named after your chip, then your firmware version:
+**Step 2 — Install**
 
-```
-patches/
-  bcm43430a1/        ← CardputerZero / RPi 3B / Pi Zero W
-    7_45_41_26/      ← firmware version (dots → underscores)
-  bcm43455c0/        ← RPi 3B+ / RPi 4
-    7_45_154/
-    7_45_189/
-    7_45_206/
-    7_45_234_4ca95bb_CY/
-    7_45_241/        ← latest available as of mid-2026
-```
-
-If your firmware version has no matching directory, nexmon cannot be used safely — see Option B.
-
-> **Risk warning — read before proceeding.** nexmon replaces the kernel driver and the firmware binary for your onboard WiFi chip. If the install fails, or if you're on an unsupported firmware version, **`wlan0` will stop working** and you may need physical access to the device (keyboard/monitor or serial console) to restore it. Always make sure you can reach the Pi without WiFi before running any of the steps below.
-
-nexmon officially supports kernels up to **6.6**. Kernel 6.18 is supported for RPi 3B+ via the [flintdevices fork](#rpi-3b-kernel-618-path) below. Other kernel versions are unsupported.
-
-> **CardputerZero on kernel 6.18 — coming soon.** The same kernel API changes that affected RPi 3B+ (timer, cfg80211, SDIO) will almost certainly affect the BCM43430A1 driver as well. We haven't validated this yet because we don't have hardware running kernel 6.18 to test against. Until then, CardputerZero requires kernel ≤ 6.6 for nexmon to work. Use Option B (USB dongle) if your kernel is newer.
-
-**Step 3 — Install (kernel ≤ 6.6 only)**
-
-Replace `<chip>` and `<firmware>` with the values you found:
+Use the [flintdevices/nexmon-install](https://github.com/flintdevices/raspberry-pi-4-wifi-csi-pi-os-bookworm) installer. It handles firmware selection, kernel driver patching, and DKMS setup automatically.
 
 ```bash
-sudo apt update
-sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make autoconf libtool texinfo
-git clone https://github.com/seemoo-lab/nexmon
-cd nexmon && source setup_env.sh
-cd patches/<chip>/<firmware>/nexmon
-make && make backup-firmware && make install-firmware
-reboot
-```
-
-**CardputerZero example** (BCM43430A1, firmware 7.45.41.26):
-```bash
-cd patches/bcm43430a1/7_45_41_26/nexmon
-make && make backup-firmware && make install-firmware
-```
-
-> **If this fails**, the most common cause is a firmware version mismatch. Run `dmesg | grep "Firmware:"` after the failed reboot and compare against the patch directory name. If there is no matching patch, use Option B.
-
----
-
-#### RPi 3B+ — kernel 6.18 path {#rpi-3b-kernel-618-path}
-
-Recent Raspberry Pi OS ships **firmware `7.45.265`**, which has no nexmon patch in the upstream repo. On top of that, the upstream nexmon `brcmfmac` kernel module does not compile on kernel 6.18 (timer API and cfg80211 signature changes). Both problems are fixed in the [flintdevices fork](https://github.com/flintdevices/raspberry-pi-4-wifi-csi-pi-os-bookworm).
-
-> **Risk reminder — this can fail and break WiFi.** This replaces `wlan0`'s firmware with a nexmon-patched binary (`7.45.189`) and installs a patched DKMS driver on top of the kernel. The DKMS build targets a specific kernel version; if your kernel is updated before you run the script, or if the build fails for any reason, `wlan0` may stop working. Have a wired connection (eth0) or physical access ready before you start.
-
-```bash
-# Prerequisites: eth0 active (wired), ~200 MB free on /
+# Prerequisites: wired connection (eth0) active, ~200 MB free on /
 sudo apt update && sudo apt install -y git
 
 git clone https://github.com/flintdevices/raspberry-pi-4-wifi-csi-pi-os-bookworm.git
@@ -119,9 +71,9 @@ sudo reboot
 ```
 
 What `install.sh` does:
-- Installs Kali's `brcmfmac-nexmon-dkms` 6.12.2 DKMS package (auto-rebuild on kernel upgrades)
-- Applies `driver/kernel-6.18-porting.patch` and triggers a DKMS rebuild (auto-detected for kernel ≥ 6.16)
-- Replaces the onboard firmware with a nexmon-patched `7.45.189` binary
+- Installs a nexmon-patched firmware for your chip
+- Installs a DKMS kernel driver (auto-rebuild on kernel upgrades)
+- Auto-detects kernel ≥ 6.16 and applies the necessary API porting patch
 - Installs `nexutil` (control utility for nexmon features)
 
 After reboot, verify monitor mode works:
@@ -132,11 +84,11 @@ sudo ip link set wlan0 up
 iw dev wlan0 info   # should show "type monitor"
 ```
 
-If `iw` reports `nl80211 not found` or the set-type command fails, the driver did not load correctly — check `dmesg | grep brcmfmac` and `dkms status brcmfmac-nexmon`.
+If the set-type command fails, check `dmesg | grep brcmfmac` and `dkms status brcmfmac-nexmon` for errors.
 
----
+> **CardputerZero on kernel 6.18 — coming soon.** The same kernel driver changes needed for RPi 3B+ will almost certainly be required for BCM43430A1 as well. We haven't validated this yet (no hardware running 6.18 available). Until then, CardputerZero requires kernel ≤ 6.6. Use Option B if your kernel is newer.
 
-**Limitation (all nexmon paths):** while nexmon is active, `wlan0` cannot connect to networks or act as an AP — single radio, can't do both simultaneously.
+**Limitation:** while nexmon is active, `wlan0` cannot connect to networks or act as an AP — single radio, can't do both simultaneously.
 
 After reboot, Flint auto-detects nexmon and offers enable/disable from **WiFi › Settings › Monitor Setup**.
 
