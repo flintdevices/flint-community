@@ -86,6 +86,24 @@ iw dev wlan0 info   # should show "type monitor"
 
 If the set-type command fails, check `dmesg | grep brcmfmac` and `dkms status brcmfmac-nexmon` for errors.
 
+**Validating monitor mode**
+
+After setting monitor mode, confirm that raw 802.11 frames are being captured:
+
+```bash
+sudo apt install -y tcpdump          # if not already installed
+sudo tcpdump -i wlan0 -c 5 -e 2>&1
+```
+
+Expected output: 5 lines with synthetic MAC addresses and `[|llc]` — these are 802.11 frames (beacons, probes, data) captured from the air and wrapped by the nexmon driver. Example:
+
+```
+20:29:15.915212  00:00:06:10:02:00 > 00:00:00:00:04:00, 802.3, length 528:  [|llc]
+20:29:15.922022  00:00:06:10:16:00 > 00:00:00:00:04:00, 802.3, length 46:   [|llc]
+```
+
+If you see 0 packets, the driver did not load correctly — check `dmesg | grep brcmfmac`.
+
 > **CardputerZero on kernel 6.18 — coming soon.** The same kernel driver changes needed for RPi 3B+ will almost certainly be required for BCM43430A1 as well. We haven't validated this yet (no hardware running 6.18 available). Until then, CardputerZero requires kernel ≤ 6.6. Use Option B if your kernel is newer.
 
 **Limitation:** while nexmon is active, `wlan0` cannot connect to networks or act as an AP — single radio, can't do both simultaneously.
