@@ -14,6 +14,44 @@ The Flint source is closed, but this space is open. Use it to report bugs, reque
 
 ---
 
+## Hardware Prerequisites
+
+Several WiFi tools (deauth, beacon monitor, PMKID/handshake capture, probe scan, etc.) require monitor mode. The native BCM43438 chip on CardputerZero and RPi 3B does **not** support monitor mode out of the box. You need one of the following:
+
+### Option A — nexmon (no extra hardware)
+
+Firmware patch for the BCM43438. Supported on both RPi 3B and CardputerZero.
+
+**Limitation:** while nexmon is active, `wlan0` cannot connect to networks or act as an AP — single radio, can't do both simultaneously.
+
+**Install:**
+
+```bash
+sudo apt update
+sudo apt install raspberrypi-kernel-headers
+git clone https://github.com/seemoo-lab/nexmon
+cd nexmon && source setup_env.sh
+cd patches/bcm43430a1/7_45_41_26/nexmon
+make && make backup-firmware && make install-firmware
+reboot
+```
+
+After reboot, Flint auto-detects nexmon and offers enable/disable from **WiFi › Settings › Monitor Setup**.
+
+### Option B — USB WiFi dongle (recommended for power users)
+
+No firmware changes required. Native WiFi remains fully usable in parallel.
+
+- **Supported adapters:** MT7612U (recommended), AR9271
+- **Drivers:** `mt76x2u`, `ath9k_htc` — included in Raspberry Pi OS
+- Plug in → Flint detects automatically. No configuration needed.
+
+---
+
+Flint's built-in UI surfaces this guide too: **WiFi › Settings › Monitor Setup**.
+
+---
+
 ## Opening an issue
 
 Just open one. No template required.
