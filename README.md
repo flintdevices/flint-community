@@ -56,14 +56,14 @@ brcmfmac: brcmf_c_preinit_dcmds: Firmware: BCM4345/6 wl0: ... version 7.45.265 .
 
 **Step 2 — Install**
 
-Use the [flintdevices/nexmon-install](https://github.com/flintdevices/raspberry-pi-4-wifi-csi-pi-os-bookworm) installer. It handles firmware selection, kernel driver patching, and DKMS setup automatically.
+Use the [flintdevices/nexmon-install](https://github.com/flintdevices/nexmon-install) installer. It handles firmware selection, kernel driver patching, and DKMS setup automatically.
 
 ```bash
 # Prerequisites: wired connection (eth0) active, ~200 MB free on /
 sudo apt update && sudo apt install -y git
 
-git clone https://github.com/flintdevices/raspberry-pi-4-wifi-csi-pi-os-bookworm.git
-cd raspberry-pi-4-wifi-csi-pi-os-bookworm
+git clone https://github.com/flintdevices/nexmon-install.git
+cd nexmon-install
 
 # Read install.sh before running — it modifies /lib/firmware and installs a DKMS driver
 sudo bash install.sh
